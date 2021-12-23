@@ -10,6 +10,7 @@ bot = telebot.TeleBot(TG_TOKEN, parse_mode=None)
 BTN_DOC = create_button('doc', '📝 Показать документ')
 BTN_REV = create_button('rev', '💲 Общая выручка')
 BTN_NEW_ITEM = create_button('new_item', '✅ Добавить продажу')
+BTN_CANCEL = create_button('cancel', '❌ Отмена')
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -45,6 +46,24 @@ def add_revenue(message, **kwargs):
     add_row(new_item)
 
     bot.send_message(message.chat.id, 'Спасибо 👍. Я добавил в отчет новую продажу.')
+
+
+@bot.callback_query_handlers(func=lambda call=True)
+def callback_inline(call):
+    if call.message:
+        if call.data == BTN_DOC['key']:
+            bot.send_message(call.message.chat.id,
+                             f'<a href="{SHEET_URL}"> Отчет по продажам</a>',
+                             parse_mode='html')
+        elif call.data == BTN_REV['key']:
+            bot.send_message(call.message.chat.id,
+                             f'Общая выручка = <b>{get_total_revenue()}</b>',
+                             parse_mode='html')
+        elif call.data == BTN_CANCEL['key']:
+            bot.edit_message_text(chat_id=call.message.chat.id,
+                                  message_id=call.message.message_id,
+                                  text='ОК 👌',
+                                  reply_markup=None)
 
 
 @bot.message_handler(content_types='text')
