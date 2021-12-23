@@ -26,25 +26,10 @@ def send_welcome(message):
     bot.reply_to(message, 'Привет! Это твой личный помощник. Чего изволите?', reply_markup=markup)
 
 
-@bot.message_handler(content_types='text')
-def send_text(message):
-    if message.text == BTN_DOC['title']:
-        bot.send_message(message.chat.id, f'<a href="{SHEET_URL}">Отчет по продажам</a>', parse_mode='html')
-    elif message.text == BTN_REV['title']:
-        bot.send_message(message.chat.id, f'Общая выручка = <b>{get_total_revenue()} у.е. </b>',
-                         parse_mode='html')
-    elif message.text == BTN_NEW_ITEM['title']:
-        new_item = [message.from_user.first_name]
-        msg = bot.send_message(message.chat.id, 'Введите объект')
-        bot.register_next_step_handler(msg, add_title, new_item=new_item)
-
-
-@bot.message_handler(content_types='text')
 def add_new_item(message):
-    if message.text == BTN_NEW_ITEM['title']:
-        new_item = [message.from_user.first_name]
-        msg = bot.send_message(message.chat.id, 'Введите объект')
-        bot.register_next_step_handler(msg, add_title, new_item=new_item)
+    new_item = [message.from_user.first_name]
+    msg = bot.send_message(message.chat.id, 'Введите объект')
+    bot.register_next_step_handler(msg, add_title, new_item=new_item)
 
 
 def add_title(message, **kwargs):
@@ -60,3 +45,17 @@ def add_revenue(message, **kwargs):
     add_row(new_item)
 
     bot.send_message(message.chat.id, 'Спасибо 👍. Я добавил в отчет новую продажу.')
+
+
+@bot.message_handler(content_types='text')
+def send_text(message):
+    if message.text == BTN_DOC['title']:
+        bot.send_message(message.chat.id, f'<a href="{SHEET_URL}">Отчет по продажам</a>', parse_mode='html')
+    elif message.text == BTN_REV['title']:
+        bot.send_message(message.chat.id, f'Общая выручка = <b>{get_total_revenue()} у.е. </b>',
+                         parse_mode='html')
+    elif message.text == BTN_NEW_ITEM['title']:
+        add_new_item(message)
+
+
+
