@@ -7,24 +7,11 @@ from utils import create_button
 
 bot = telebot.TeleBot(TG_TOKEN, parse_mode=None)
 
+
 BTN_DOC = create_button('doc', '📝 Показать документ')
 BTN_REV = create_button('rev', '💲 Общая выручка')
 BTN_NEW_ITEM = create_button('new_item', '✅ Добавить продажу')
 BTN_CANCEL = create_button('cancel', '❌ Отмена')
-
-
-@bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
-    # img = open('hello.png', 'rb')  # TODO
-    # bot.send_sticker(message.chat.id, img)
-
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton(BTN_DOC['title'])
-    btn2 = types.KeyboardButton(BTN_REV['title'])
-    btn3 = types.KeyboardButton(BTN_NEW_ITEM['title'])
-    markup.add(btn1, btn2, btn3)
-
-    bot.reply_to(message, 'Привет! Это твой личный помощник. Чего изволите?', reply_markup=markup)
 
 
 def add_new_item(message):
@@ -45,10 +32,20 @@ def add_revenue(message, **kwargs):
     new_item.append(message.text)
     add_row(new_item)
 
-    bot.send_message(message.chat.id, 'Спасибо 👍. Я добавил в отчет новую продажу.')
+    bot.send_message(message.chat.id, 'Спасибо 👍. Я добавил в отчет новую продажу.',
+                     reply_markup=inline_keyboard())
 
 
-@bot.callback_query_handlers(func=lambda call=True)
+def inline_keyboard():
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    btn1 = types.InlineKeyboardButton(BTN_DOC['title'], callback_data=BTN_DOC['key'])
+    btn2 = types.InlineKeyboardButton(BTN_REV['title'], callback_data=BTN_REV['key'])
+    btn3 = types.InlineKeyboardButton(BTN_CANCEL['title'], callback_data=BTN_CANCEL['key'])
+    markup.add(btn1, btn2, btn3)
+    return markup
+
+
+@bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     if call.message:
         if call.data == BTN_DOC['key']:
@@ -66,15 +63,30 @@ def callback_inline(call):
                                   reply_markup=None)
 
 
-@bot.message_handler(content_types='text')
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    # img = open('hello.png', 'rb')  # TODO
+    # bot.send_sticker(message.chat.id, img)
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton(BTN_DOC['title'])
+    btn2 = types.KeyboardButton(BTN_REV['title'])
+    btn3 = types.KeyboardButton(BTN_NEW_ITEM['title'])
+    markup.add(btn1, btn2, btn3)
+
+    bot.reply_to(message, 'Привет! Это твой личный помощник. Чего изволите?', reply_markup=markup)
+
+
+@bot.message_handler(content_types=['text'])
 def send_text(message):
     if message.text == BTN_DOC['title']:
-        bot.send_message(message.chat.id, f'<a href="{SHEET_URL}">Отчет по продажам</a>', parse_mode='html')
+        bot.send_message(message.chat.id,
+                         f'<a href="{SHEET_URL}">Отчет по продажам</a>',
+                         parse_mode='html')
     elif message.text == BTN_REV['title']:
-        bot.send_message(message.chat.id, f'Общая выручка = <b>{get_total_revenue()} у.е. </b>',
+        bot.send_message(message.chat.id,
+                         f'Общая выручка = <b>{get_total_revenue()}</b>',
                          parse_mode='html')
     elif message.text == BTN_NEW_ITEM['title']:
         add_new_item(message)
-
-
 
