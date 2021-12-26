@@ -65,8 +65,8 @@ def callback_inline(call):
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    # img = open('hello.png', 'rb')  # TODO
-    # bot.send_sticker(message.chat.id, img)
+    img = open('hello.png', 'rb')
+    bot.send_sticker(message.chat.id, img)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton(BTN_DOC['title'])
